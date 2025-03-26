@@ -1,0 +1,22 @@
+# 依赖目录
+node_modules/
+
+# 环境变量文件（包含敏感信息）
+.env
+
+# 日志
+logs
+*.log
+npm-debug.log*
+
+# 运行时数据
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 目录
+.npm
+.eslintcache
+.node_repl_history
+.DS_Store 
