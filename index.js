@@ -27,7 +27,7 @@ app.get('/mcp-manifest.json', (req, res) => {
     },
     api: {
       type: "openapi",
-      url: `http://localhost:${port}/openapi.json`
+      url: `/openapi.json`
     },
     logo_url: "https://cdn-icons-png.flaticon.com/512/4052/4052984.png",
     contact_email: "example@example.com",
@@ -37,6 +37,10 @@ app.get('/mcp-manifest.json', (req, res) => {
 
 // OpenAPI规范
 app.get('/openapi.json', (req, res) => {
+  // 获取请求的主机地址
+  const host = req.get('host');
+  const protocol = req.protocol;
+  
   res.json({
     openapi: "3.0.0",
     info: {
@@ -46,7 +50,7 @@ app.get('/openapi.json', (req, res) => {
     },
     servers: [
       {
-        url: `http://localhost:${port}`
+        url: `${protocol}://${host}`
       }
     ],
     paths: {
@@ -154,7 +158,7 @@ app.get('/weather', async (req, res) => {
   }
 });
 
+// 使用stderr而不是stdout输出日志，避免干扰MCP通信
 app.listen(port, () => {
-  console.log(`天气MCP服务运行在 http://localhost:${port}`);
-  console.log(`MCP清单: http://localhost:${port}/mcp-manifest.json`);
+  // 完全不输出日志，符合Smithery的要求
 }); 
