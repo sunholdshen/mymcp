@@ -16,6 +16,11 @@ app.get('/', (req, res) => {
 
 // MCP清单文件
 app.get('/mcp-manifest.json', (req, res) => {
+  // 获取当前主机信息
+  const host = req.get('host');
+  const protocol = req.protocol;
+  const baseUrl = `${protocol}://${host}`;
+  
   res.json({
     schema_version: "v1",
     name_for_human: "天气查询服务",
@@ -27,7 +32,7 @@ app.get('/mcp-manifest.json', (req, res) => {
     },
     api: {
       type: "openapi",
-      url: `/openapi.json`
+      url: `${baseUrl}/openapi.json`
     },
     logo_url: "https://cdn-icons-png.flaticon.com/512/4052/4052984.png",
     contact_email: "example@example.com",
@@ -40,6 +45,7 @@ app.get('/openapi.json', (req, res) => {
   // 获取请求的主机地址
   const host = req.get('host');
   const protocol = req.protocol;
+  const baseUrl = `${protocol}://${host}`;
   
   res.json({
     openapi: "3.0.0",
@@ -50,7 +56,7 @@ app.get('/openapi.json', (req, res) => {
     },
     servers: [
       {
-        url: `${protocol}://${host}`
+        url: baseUrl
       }
     ],
     paths: {
@@ -131,6 +137,12 @@ app.get('/weather', async (req, res) => {
   
   try {
     const apiKey = process.env.OPENWEATHER_API_KEY;
+    if (!apiKey) {
+      // 写入stderr而不是stdout
+      console.error('环境变量OPENWEATHER_API_KEY未设置');
+      return res.status(500).json({ error: 'API配置错误' });
+    }
+    
     const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
       params: {
         q: city,
@@ -153,12 +165,38 @@ app.get('/weather', async (req, res) => {
     if (error.response && error.response.status === 404) {
       return res.status(404).json({ error: '城市未找到' });
     }
+    // 写入stderr而不是stdout
     console.error('天气API错误:', error.message);
     res.status(500).json({ error: '获取天气信息时出错' });
   }
 });
 
-// 使用stderr而不是stdout输出日志，避免干扰MCP通信
-app.listen(port, () => {
+// 处理404错误
+app.use((req, res) => {
+  res.status(404).json({ error: '未找到请求的资源' });
+});
+
+// 错误处理中间件
+app.use((err, req, res, next) => {
+  // 写入stderr而不是stdout
+  console.error('服务器错误:', err.message);
+  res.status(500).json({ error: '服务器内部错误' });
+});
+
+// 启动服务，避免任何输出到stdout
+const server = app.listen(port, () => {
   // 完全不输出日志，符合Smithery的要求
+});
+
+// 处理进程终止信号
+process.on('SIGTERM', () => {
+  server.close(() => {
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  server.close(() => {
+    process.exit(0);
+  });
 }); 

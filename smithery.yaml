@@ -1,15 +1,17 @@
+version: '1'
 build:
-  type: node
-  version: "18"
-  
+  type: 'node'
+  version: '18'
+  command: 'npm install'
+
 run:
-  command: node index.js
+  command: 'node index.js'
   port: 3001
   env:
     - name: PORT
-      value: "3001"
+      value: '3001'
     - name: OPENWEATHER_API_KEY
       secret: true
-      
+
 mcp:
-  manifest_path: /mcp-manifest.json 
+  manifest_path: '/mcp-manifest.json' 
