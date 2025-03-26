@@ -1,0 +1,7 @@
+build:
+  type: node
+run:
+  command: node index.js
+  port: 3001
+mcp:
+  manifest_path: /mcp-manifest.json 
